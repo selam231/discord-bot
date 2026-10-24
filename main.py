@@ -14,8 +14,7 @@ intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ----------------- AYARLAR -----------------
-# YENİ TOKEN EKLENDİ
-BOT_TOKEN = "MTU2MzUzMDY0ODg5MzkyMzM1OA.GLTv01.V3GaAQVDCCkuI2pTbHaJaUuwzzAUHcyZjUvauU"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 ROBLOX_GROUP_ID = 15093066
 ROBLOX_COOKIE = "BURAYA_ROBLOX_BOT_COOKIE_GELECEK"
 
@@ -36,8 +35,6 @@ def save_users():
     with open(DATA_FILE, "w") as f:
         json.dump(verified_users, f, indent=4)
 # -------------------------------------------
-
-# ================= BUTONLU FORM SİSTEMİ =================
 
 class FormView(View):
     def __init__(self):
@@ -65,8 +62,6 @@ class FormView(View):
         embed.set_footer(text="Güvenlik Departmanı Resmi Botu")
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-# ================= BUTONLU KAYIT SİSTEMİ =================
-
 class KayitModal(discord.ui.Modal, title="🔗 Roblox Hesap Bağlama"):
     roblox_username = discord.ui.TextInput(label="Roblox Kullanıcı Adınız", placeholder="Örn: Ahmet123", required=True)
 
@@ -89,9 +84,9 @@ class KayitModal(discord.ui.Modal, title="🔗 Roblox Hesap Bağlama"):
 
         try:
             await interaction.user.send(embed=embed_dm)
-            await interaction.response.send_message("📩 **Doğrulama kodun DM (Özel Mesaj) kutuna gönderildi!**\nLütfen DM kutunu kontrol edip kodu Roblox profil bio'na ekledikten sonra **`✅ Hesabı Doğrula`** butonuna bas.", ephemeral=True)
+            await interaction.response.send_message("📩 **Doğrulama kodun DM kutuna gönderildi!** Lütfen DM'ni kontrol edip kodu ekledikten sonra butona bas.", ephemeral=True)
         except discord.Forbidden:
-            await interaction.response.send_message("⚠️ **DM (Özel Mesaj) kutunuz kapalı!** Kodu gönderebilmem için lütfen sunucu gizlilik ayarlarından DM mesajlarını açıp tekrar butona basın.", ephemeral=True)
+            await interaction.response.send_message("⚠️ **DM kutunuz kapalı!** Kodu gönderebilmem için lütfen sunucu gizlilik ayarlarından DM mesajlarını açın.", ephemeral=True)
 
 class KayitView(View):
     def __init__(self):
@@ -105,7 +100,7 @@ class KayitView(View):
     async def btn_dogrula_callback(self, interaction: discord.Interaction, button: Button):
         user_id_str = str(interaction.user.id)
         if user_id_str not in pending_verifications:
-            await interaction.response.send_message("❌ Önce **`🔗 Roblox Hesabını Bağla`** butonuna basarak DM'den kod almalısın!", ephemeral=True)
+            await interaction.response.send_message("❌ Önce **`🔗 Roblox Hesabını Bağla`** butonuna basmalısın!", ephemeral=True)
             return
 
         pending = pending_verifications[user_id_str]
@@ -115,7 +110,7 @@ class KayitView(View):
 
         res = requests.get(f"https://users.roblox.com/v1/users/{roblox_id}")
         if res.status_code != 200:
-            await interaction.response.send_message("❌ Roblox profili çekilemedi, lütfen tekrar deneyin.", ephemeral=True)
+            await interaction.response.send_message("❌ Roblox profili çekilemedi.", ephemeral=True)
             return
 
         bio = res.json().get("description", "")
@@ -142,15 +137,13 @@ class KayitView(View):
 
             try:
                 await interaction.user.edit(nick=roblox_name)
-                name_status = f" İsminiz sunucuda **{roblox_name}** olarak güncellendi ve tüm kanallar açıldı!"
+                name_status = f" İsminiz **{roblox_name}** olarak güncellendi!"
             except Exception:
-                name_status = " (İsminiz yetki seviyeniz sebebiyle otomatik değiştirilemedi ama rolleriniz verildi)."
+                name_status = " (İsminiz yetki seviyesi yüzünden değiştirilemedi ama rolleriniz verildi)."
 
-            await interaction.response.send_message(f"✅ **Tebrikler!** Discord hesabın **{roblox_name}** Roblox hesabıyla başarıyla doğrulandı!{name_status}", ephemeral=True)
+            await interaction.response.send_message(f"✅ **Tebrikler!** Hesap başarıyla doğrulandı!{name_status}", ephemeral=True)
         else:
-            await interaction.response.send_message(f"❌ DM'den gönderilen kod Roblox profil bio'nuzda bulunamadı!\nBeklenen Kod: **`{expected_code}`**\nLütfen profilinizi güncelleyip tekrar butona basın.", ephemeral=True)
-
-# ================= BOT EVENTS & KOMUTLAR =================
+            await interaction.response.send_message(f"❌ Kod Roblox profil bio'nuzda bulunamadı!\nBeklenen Kod: **`{expected_code}`**", ephemeral=True)
 
 @bot.event
 async def on_ready():
@@ -161,7 +154,6 @@ async def on_ready():
 @bot.event
 async def on_member_join(member):
     global WELCOME_CHANNEL_ID
-    
     unverified_role = discord.utils.get(member.guild.roles, name="Kayıtsız")
     if unverified_role:
         try:
@@ -190,7 +182,7 @@ async def on_member_join(member):
 
 @bot.command()
 async def form(ctx):
-    embed = discord.Embed(title="📑 Güvenlik Departmanı - Form Paneli", description="Lütfen almak istediğiniz form butonuna tıklayın. Form şablonu **sadece sizin görebileceğiniz şekilde** açılacaktır.", color=discord.Color.dark_gray())
+    embed = discord.Embed(title="📑 Güvenlik Departmanı - Form Paneli", description="Lütfen almak istediğiniz form butonuna tıklayın.", color=discord.Color.dark_gray())
     embed.set_footer(text="Güvenlik Departmanı Resmi Botu")
     await ctx.send(embed=embed, view=FormView())
 
@@ -200,9 +192,8 @@ async def sil(ctx, amount: int = None):
     if amount is None or amount <= 0:
         await ctx.send("❌ Lütfen silinecek mesaj sayısını girin! Örnek: `!sil 10`", delete_after=5)
         return
-
     deleted = await ctx.channel.purge(limit=amount + 1)
-    confirm_msg = await ctx.send(f"🗑️ **{len(deleted)-1}** adet mesaj başarıyla silindi!")
+    confirm_msg = await ctx.send(f"🗑️ **{len(deleted)-1}** adet mesaj silindi!")
     await confirm_msg.delete(delay=3)
 
 @bot.command()
@@ -211,14 +202,11 @@ async def kaydolkurulum(ctx, target_channel: discord.TextChannel = None):
     if target_channel is None:
         await ctx.send("❌ Lütfen bir kanal etiketleyin! Örnek: `!kaydolkurulum #kayıt-ol`")
         return
-
     guild = ctx.guild
-    bilgi_msj = await ctx.send(f"⏳ **{target_channel.mention}** ayarlanıyor, roller oluşturuluyor ve sunucu kanalları kilitleniyor...")
-
+    bilgi_msj = await ctx.send(f"⏳ **{target_channel.mention}** ayarlanıyor...")
     unverified_role = discord.utils.get(guild.roles, name="Kayıtsız")
     if not unverified_role:
         unverified_role = await guild.create_role(name="Kayıtsız", color=discord.Color.red())
-
     verified_role = discord.utils.get(guild.roles, name="Doğrulandi")
     if not verified_role:
         verified_role = await guild.create_role(name="Doğrulandi", color=discord.Color.green())
@@ -245,11 +233,10 @@ async def kaydolkurulum(ctx, target_channel: discord.TextChannel = None):
     except Exception as e:
         print(f"Purge hatası: {e}")
 
-    embed = discord.Embed(title="🛡️ Güvenlik Departmanı - Roblox Doğrulama Paneli", description="Aramıza hoş geldiniz! Sunucuya erişim sağlamak ve Roblox gruptaki rütbenizi senkronize etmek için hesabınızı bağlamanız gerekmektedir.\n\n**Adımlar:**\n1️⃣ Aşağıdaki **`🔗 Roblox Hesabını Bağla`** butonuna basın ve Roblox kullanıcı adınızı girin.\n2️⃣ Botun size **Özel Mesaj (DM)** üzerinden gönderdiği kodu Roblox profilinizin **Bio / Hakkımda** kısmına ekleyin.\n3️⃣ Profilinizi kaydettikten sonra **`✅ Hesabı Doğrula`** butonuna basarak işleminizi tamamlayın!", color=discord.Color.dark_gray())
-    embed.set_footer(text="Güvenlik Departmanı Resmi Bot Entegrasyonu")
-
+    embed = discord.Embed(title="🛡️ Güvenlik Departmanı - Roblox Doğrulama Paneli", description="Sunucuya erişim için hesabınızı bağlayın:\n\n1️⃣ **`🔗 Roblox Hesabını Bağla`** butonuna basın.\n2️⃣ DM'den gelen kodu profil bio'nuza ekleyin.\n3️⃣ **`✅ Hesabı Doğrula`** butonuna basın.", color=discord.Color.dark_gray())
+    embed.set_footer(text="Güvenlik Departmanı Botu")
     await target_channel.send(embed=embed, view=KayitView())
-    await bilgi_msj.edit(content=f"✅ **{target_channel.mention}** kuruldu! Kayıt kanalı dışındaki **tüm sunucu kanalları kilitlendi** ve doğrulama sonrası erişilebilir hale getirildi!")
+    await bilgi_msj.edit(content=f"✅ **{target_channel.mention}** kuruldu!")
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -258,38 +245,28 @@ async def kurulum(ctx, target_channel: discord.TextChannel = None):
     if target_channel is None:
         await ctx.send("❌ Lütfen bir kanal etiketleyin! Örnek: `!kurulum #hoşgeldin`")
         return
-
     WELCOME_CHANNEL_ID = target_channel.id
-    bilgi_msj = await ctx.send(f"⏳ **{target_channel.mention}** kanalı temizleniyor ve kilitleniyor...")
-
+    bilgi_msj = await ctx.send(f"⏳ **{target_channel.mention}** ayarlanıyor...")
     try:
         await target_channel.purge(limit=1000)
     except Exception as e:
-        print(f"Mesaj silme hatası: {e}")
-
+        print(f"Hata: {e}")
     await target_channel.set_permissions(ctx.guild.default_role, send_messages=False)
-
-    members = [m for m in ctx.guild.members if not m.bot]
-    user_info_list = "\n".join([f"👤 **{m.name}** (`{m.id}`)" for m in members[:25]])
-
-    embed = discord.Embed(title="🎉 Hoşgeldin!", description=f"Sunucumuza hoş geldiniz! Bu kanal kilitlenmiştir.\n\n**Mevcut Üye Listesi:**\n{user_info_list}", color=discord.Color.dark_gray())
-    embed.set_footer(text="Güvenlik Departmanı Resmi Botu")
+    embed = discord.Embed(title="🎉 Hoşgeldin!", description="Sunucumuza hoş geldiniz!", color=discord.Color.dark_gray())
     await target_channel.send(embed=embed)
-    await bilgi_msj.edit(content=f"✅ **{target_channel.mention}** kanalı kuruldu ve otomatik karşılama aktif edildi!")
+    await bilgi_msj.edit(content=f"✅ **{target_channel.mention}** kuruldu!")
 
 @bot.command()
 async def liste(ctx):
-    await ctx.send("🔄 Roblox BTF rütbe kadroları taranıyor...")
+    await ctx.send("🔄 Rütbeler taranıyor...")
     try:
         roles_url = f"https://groups.roblox.com/v1/groups/{ROBLOX_GROUP_ID}/roles"
         roles_res = requests.get(roles_url)
         if roles_res.status_code != 200:
             await ctx.send("❌ Roblox rütbe bilgileri çekilemedi.")
             return
-
         roles_data = roles_res.json().get("roles", [])
         sorted_roles = sorted(roles_data, key=lambda r: r.get("rank", 0), reverse=True)
-
         list_text = ""
         user_count = 0
         for role in sorted_roles:
@@ -297,7 +274,6 @@ async def liste(ctx):
                 continue
             users_url = f"https://groups.roblox.com/v1/groups/{ROBLOX_GROUP_ID}/roles/{role.get('id')}/users?sortOrder=Desc&limit=10"
             users_res = requests.get(users_url)
-
             if users_res.status_code == 200:
                 for u in users_res.json().get("data", []):
                     list_text += f"🎖️ **{role.get('name')}** | 👤 **{u.get('username')}** (`{u.get('userId')}`)\n"
@@ -306,130 +282,19 @@ async def liste(ctx):
                         break
             if user_count >= 25:
                 break
-
-        embed = discord.Embed(title="🛡️ BTF - Kara Kuvvetleri İnfaz Timi Rütbe Listesi", description=list_text if list_text else "Grupta üye bulunamadı.", color=discord.Color.dark_gray())
-        embed.set_footer(text="Roblox Grup Entegrasyonu - Hiyerarşik Sıralama")
+        embed = discord.Embed(title="🛡️ Rütbe Listesi", description=list_text if list_text else "Üye bulunamadı.", color=discord.Color.dark_gray())
         await ctx.send(embed=embed)
     except Exception as e:
         await ctx.send(f"❌ Hata: {e}")
 
 @bot.command()
 async def rütbebilgi(ctx):
-    embed = discord.Embed(title="📘 Roblox Grup & Rütbe Yönetimi Rehberi", description="Bot üzerinden Roblox grup rütbesi yönetimi sistemi:", color=discord.Color.dark_gray())
-    embed.add_field(name="1️⃣ Hesabını Bağla (Butonlu Panel)", value="Kayıt kanalındaki **`🔗 Roblox Hesabını Bağla`** butonuna tıkla -> DM'den gelen kodu Roblox Bio'na koy -> **`✅ Hesabı Doğrula`** butonuna bas.", inline=False)
-    embed.add_field(name="2️⃣ Otomatik İsim (Nametag)", value="Hesabını doğruladığında sunucudaki ismin otomatik olarak Roblox kullanıcı adın yapılır.", inline=False)
-    embed.add_field(name="3️⃣ Grup Yönetim Komutları", value="`!gruprütbever <roblox_adi> <Role_ID>` - Kullanıcının grup rütbesini değiştirir.\n`!grupal <roblox_adi>` - Kullanıcının rütbesini en alta alır.\n`!gruptanat <roblox_adi>` - Kullanıcıyı gruptan atar.", inline=False)
-    embed.set_footer(text="Güvenlik Departmanı Resmi Botu")
+    embed = discord.Embed(title="📘 Rehber", description="Bot kullanım rehberi.", color=discord.Color.dark_gray())
     await ctx.send(embed=embed)
 
 @bot.command()
-async def gruprütbever(ctx, roblox_username: str = None, role_id: int = None):
-    if not roblox_username or not role_id:
-        await ctx.send("❌ Eksik kullanım! Örnek: `!gruprütbever Ahmet123 12345678`")
-        return
-
-    if str(ctx.author.id) not in verified_users:
-        await ctx.send("❌ Bu komutu kullanabilmek için önce Discord hesabını Roblox hesabınla bağlamalısın! (`!rütbebilgi` oku).")
-        return
-
-    req = requests.post("https://users.roblox.com/v1/usernames/users", json={"usernames": [roblox_username]})
-    if req.status_code != 200 or not req.json().get("data"):
-        await ctx.send(f"❌ **{roblox_username}** adında bir Roblox kullanıcısı bulunamadı!")
-        return
-
-    target_roblox_id = req.json()["data"][0]["id"]
-    target_roblox_name = req.json()["data"][0]["name"]
-
-    url = f"https://groups.roblox.com/v1/groups/{ROBLOX_GROUP_ID}/users/{target_roblox_id}"
-    headers = {"Cookie": f".ROBLOSECURITY={ROBLOX_COOKIE}"}
-    payload = {"roleId": role_id}
-
-    req_patch = requests.patch(url, json=payload, headers=headers)
-    if req_patch.status_code == 200:
-        await ctx.send(f"✅ **{target_roblox_name}** kullanıcısının Roblox grup rütbesi güncellendi!")
-    else:
-        await ctx.send("❌ Roblox API hatası veya yetki yetersizliği.")
-
-@bot.command()
-async def grupal(ctx, roblox_username: str = None):
-    if not roblox_username:
-        await ctx.send("❌ Örnek kullanım: `!grupal Ahmet123`")
-        return
-
-    if str(ctx.author.id) not in verified_users:
-        await ctx.send("❌ Önce hesabını bağlamalısın! (`!rütbebilgi`)")
-        return
-
-    req = requests.post("https://users.roblox.com/v1/usernames/users", json={"usernames": [roblox_username]})
-    if req.status_code != 200 or not req.json().get("data"):
-        await ctx.send(f"❌ **{roblox_username}** adında bir Roblox kullanıcısı bulunamadı!")
-        return
-
-    target_roblox_id = req.json()["data"][0]["id"]
-    target_roblox_name = req.json()["data"][0]["name"]
-
-    roles_url = f"https://groups.roblox.com/v1/groups/{ROBLOX_GROUP_ID}/roles"
-    roles_res = requests.get(roles_url)
-    if roles_res.status_code != 200:
-        await ctx.send("❌ Rütbe bilgileri çekilemedi.")
-        return
-
-    roles_data = roles_res.json().get("roles", [])
-    lowest_role_id = None
-    min_rank = 999999
-    for r in roles_data:
-        if r.get("rank", 0) > 0 and r.get("rank", 0) < min_rank:
-            min_rank = r.get("rank")
-            lowest_role_id = r.get("id")
-
-    if not lowest_role_id:
-        await ctx.send("❌ En alt rütbe bulunamadı.")
-        return
-
-    url = f"https://groups.roblox.com/v1/groups/{ROBLOX_GROUP_ID}/users/{target_roblox_id}"
-    headers = {"Cookie": f".ROBLOSECURITY={ROBLOX_COOKIE}"}
-    payload = {"roleId": lowest_role_id}
-
-    req_patch = requests.patch(url, json=payload, headers=headers)
-    if req_patch.status_code == 200:
-        await ctx.send(f"📉 **{target_roblox_name}** kullanıcısının rütbesi en alta düşürüldü!")
-    else:
-        await ctx.send("❌ İşlem başarısız oldu. Yetkin yetersiz olabilir.")
-
-@bot.command()
-async def gruptanat(ctx, roblox_username: str = None):
-    if not roblox_username:
-        await ctx.send("❌ Örnek kullanım: `!gruptanat Ahmet123`")
-        return
-
-    if str(ctx.author.id) not in verified_users:
-        await ctx.send("❌ Önce hesabını bağlamalısın! (`!rütbebilgi`)")
-        return
-
-    req = requests.post("https://users.roblox.com/v1/usernames/users", json={"usernames": [roblox_username]})
-    if req.status_code != 200 or not req.json().get("data"):
-        await ctx.send(f"❌ **{roblox_username}** adında bir Roblox kullanıcısı bulunamadı!")
-        return
-
-    target_roblox_id = req.json()["data"][0]["id"]
-    target_roblox_name = req.json()["data"][0]["name"]
-
-    url = f"https://groups.roblox.com/v1/groups/{ROBLOX_GROUP_ID}/users/{target_roblox_id}"
-    headers = {"Cookie": f".ROBLOSECURITY={ROBLOX_COOKIE}"}
-
-    del_req = requests.delete(url, headers=headers)
-    if del_req.status_code == 200:
-        await ctx.send(f"🚫 **{target_roblox_name}** kullanıcı adlı kişi başarıyla Roblox grubundan atıldı!")
-    else:
-        await ctx.send("❌ İşlem başarısız oldu. Kullanıcı grupta olmayabilir veya yetkin yetersizdir.")
-
-@bot.command()
 async def yardım(ctx):
-    embed = discord.Embed(title="📖 Güvenlik Departmanı - Yardım Menüsü", description="Tüm bot komutları ve ne işe yaradıkları aşağıdadır:", color=discord.Color.dark_gray())
-    embed.add_field(name="📑 Form Paneli", value="`!form` - İcraat, Dosya ve Ceza formlarını butonlu özel panel olarak açar.", inline=False)
-    embed.add_field(name="🛡️ Yönetim & Kanal Komutları", value="`!sil <miktar>` - Belirtilen sayıda mesajı kanaldan temizler.\n`!kurulum #kanal` - Kanalı kilitler ve otomatik karşılama kanalını ayarlar.\n`!kaydolkurulum #kanal` - 'Kayıtsız' ve 'Doğrulandi' rollerini oluşturur, TÜM kanalları kilitler ve butonlu paneli kurar.", inline=False)
-    embed.add_field(name="🔗 Roblox Bağlantı & Grup Yönetimi", value="`!liste` - Roblox gruptaki rütbeleri yüksekten düşüğe sıralar.\n`!gruprütbever <roblox_adi> <role_id>` - Roblox kullanıcı adıyla rütbe verir.\n`!grupal <roblox_adi>` - Roblox kullanıcı adıyla rütbeyi en alta indirir.\n`!gruptanat <roblox_adi>` - Roblox kullanıcı adıyla gruptan ihraç eder.", inline=False)
-    embed.set_footer(text="Güvenlik Departmanı Resmi Botu")
+    embed = discord.Embed(title="📖 Yardım Menüsü", description="Tüm komutlar.", color=discord.Color.dark_gray())
     await ctx.send(embed=embed)
 
 bot.run(BOT_TOKEN)
