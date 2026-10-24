@@ -15,7 +15,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ----------------- AYARLAR -----------------
 # YENİ TOKEN EKLENDİ
-BOT_TOKEN = "MTU2MzUzMDY0ODg5MzkyMzM1OA.GtZJBy.ITMTuXM9kLFgNF0YjWmmHtxOX43SzptEHs_lU8"
+BOT_TOKEN = "MTU2MzUzMDY0ODg5MzkyMzM1OA.GuMLqn.siUL6_J2V9Ni47kuXaO2ABjTVdZgyHrYvf630g"
 ROBLOX_GROUP_ID = 15093066
 ROBLOX_COOKIE = "BURAYA_ROBLOX_BOT_COOKIE_GELECEK"
 
